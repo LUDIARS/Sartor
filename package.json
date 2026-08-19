@@ -6,12 +6,12 @@
   "description": "予算内コーディネート提案 (Uniqlo/GU/Amazon 集積 + LLM 提案 + 人間判断)",
   "engines": { "node": ">=22.13" },
   "scripts": {
+    "test": "tsx --test tests/*.test.ts",
     "typecheck": "tsc --noEmit",
     "crawl": "tsx src/cli/crawl.ts",
     "serve": "tsx src/cli/serve.ts"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.117.1",
     "zod": "^4.4.3"
   },
   "devDependencies": {

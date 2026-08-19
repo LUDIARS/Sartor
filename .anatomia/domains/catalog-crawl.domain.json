@@ -5,11 +5,15 @@
   "templateRules": [],
   "membership": [
     {
+      "pathPattern": "(^|/)src/crawl/amazon/.*\\.ts$"
+    },
+    {
       "pathPattern": "(^|/)src/(crawl/.*|cli/crawl)\\.ts$"
     }
   ],
   "source": "spec-draft",
   "specRefs": [
-    "spec/SPEC-STEP1-PROTOTYPE.md"
+    "spec/SPEC-STEP1-PROTOTYPE.md",
+    "spec/SPEC-STEP1B-CLAUDE-CLI-AMAZON.md"
   ]
 }

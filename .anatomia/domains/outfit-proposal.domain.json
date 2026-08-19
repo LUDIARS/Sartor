@@ -5,11 +5,15 @@
   "templateRules": [],
   "membership": [
     {
+      "pathPattern": "(^|/)src/llm/(claude-cli-.*|proposal-parser)\\.ts$"
+    },
+    {
       "pathPattern": "(^|/)src/(llm/.*|domain/(fashion-vectors|budget|types))\\.ts$"
     }
   ],
   "source": "spec-draft",
   "specRefs": [
-    "spec/SPEC-STEP1-PROTOTYPE.md"
+    "spec/SPEC-STEP1-PROTOTYPE.md",
+    "spec/SPEC-STEP1B-CLAUDE-CLI-AMAZON.md"
   ]
 }

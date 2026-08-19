@@ -18,17 +18,31 @@ Node.js 22.13 以降で実行します。プロフィールと提案履歴は、
 ```powershell
 npm i
 npm run crawl -- --brand uniqlo --gender MEN --class pants --limit 30
-$env:ANTHROPIC_API_KEY = "..."
 npm run serve
 ```
 
-POSIX シェルでは、最後の 2 行を `ANTHROPIC_API_KEY=... npm run serve` として実行します。
-
 ブラウザで `http://localhost:3000` を開きます。`PORT` を設定すると待受ポートを変更できます。
-`ANTHROPIC_API_KEY` がない状態で提案を依頼すると、提案を作らずに明示エラーを返します。
+提案にはローカルでログイン済みの [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code) (`claude`) を使います。API キーは不要です。
+CLI が未インストールまたは PATH にない場合、提案 API は HTTP 501 `llm_unavailable` を返します。
+
+## Amazon カタログ取得
+
+メンズ・オフィスカジュアル・40 代向けの定義済み検索は次で実行します。`--limit` は各カテゴリごとの上限です。
+
+```powershell
+npm run crawl -- --brand amazon --preset mens-office-casual-40s --limit 30
+```
+
+個別検索では性別・カテゴリ・検索語を明示します。
+
+```powershell
+npm run crawl -- --brand amazon --gender MEN --class shirts --query "メンズ オフィスカジュアル シャツ" --limit 30
+```
+
+Amazon 取得は固定の SartorBot 識別子で `robots.txt` を最初に確認し、リクエストを直列化します。各リクエスト間は 2 秒以上（0〜1 秒のジッタを加算）、個別検索（preset では各カテゴリ）は最大 120 リクエストです。CAPTCHA を検出した時点で直ちに停止します。
 
 ### Excubitor 経由で起動する
 
 `excubitor.catalog.yaml` でサービス `sartor` (port 5395) を宣言しています。Excubitor から起動する場合は
-リポ直下の `.env` (gitignore 済) に `ANTHROPIC_API_KEY=...` を置くと `--env-file-if-exists` で読み込まれます。
+`claude` CLI へのログインはこのアカウントのローカル設定を使います。`--env-file-if-exists` は他の任意設定のために残しています。
 ブラウザは `http://127.0.0.1:5395` を開きます。

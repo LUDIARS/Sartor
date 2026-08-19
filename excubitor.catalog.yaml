@@ -10,7 +10,7 @@ services:
     repo: LUDIARS/Sartor
     runtime: node
     cwd: ${ARS_ROOT}/Sartor
-    # .env (gitignore 済) に ANTHROPIC_API_KEY を置く。無ければ提案 API だけ 503 llm_not_configured。
+    # ローカルでログイン済みの claude CLI を使う。API キーは不要。
     command: npx --no-install tsx --env-file-if-exists=.env src/cli/serve.ts
     autostart: false
     allow_hot_reload: false

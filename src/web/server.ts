@@ -3,7 +3,9 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { LlmNotConfiguredError } from "../llm/outfit-proposer.js";
+import { ClaudeCliExecutionError } from "../llm/claude-cli-runner.js";
+import { ClaudeCliUnavailableError } from "../llm/claude-cli-path.js";
+import { InvalidLlmProposalError } from "../llm/proposal-parser.js";
 import { logError } from "../log.js";
 import { closeDatabase, openDatabase, type SartorDatabase } from "../store/db.js";
 import { GarmentRepository } from "../store/garment-repo.js";
@@ -52,8 +54,14 @@ function errorFor(error: unknown): HttpError {
   if (error instanceof HttpError) {
     return error;
   }
-  if (error instanceof LlmNotConfiguredError) {
-    return new HttpError(503, "llm_not_configured", "Outfit proposals require ANTHROPIC_API_KEY.");
+  if (error instanceof ClaudeCliUnavailableError) {
+    return new HttpError(501, "llm_unavailable", "Install and log in to the local Claude Code CLI before requesting proposals.");
+  }
+  if (error instanceof InvalidLlmProposalError) {
+    return new HttpError(502, "invalid_llm_proposal", "Claude CLI returned an invalid outfit proposal.");
+  }
+  if (error instanceof ClaudeCliExecutionError) {
+    return new HttpError(502, "llm_execution_failed", "Claude CLI could not complete the outfit proposal.");
   }
   return new HttpError(500, "internal_error", "An unexpected server error occurred.");
 }
