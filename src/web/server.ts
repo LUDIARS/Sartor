@@ -25,7 +25,27 @@ const publicAssets = new Map<string, { fileName: string; contentType: string }>(
   ["/app.js", { fileName: "app.js", contentType: "text/javascript; charset=utf-8" }],
   ["/style.css", { fileName: "style.css", contentType: "text/css; charset=utf-8" }],
 ]);
-const allowedRequestHostnames = new Set(["localhost", "127.0.0.1"]);
+const localRequestHostnames: readonly string[] = ["localhost", "127.0.0.1"];
+
+/**
+ * LUDIARS_ALLOWED_HOSTS (Excubitor では sartor${DOMAIN_ROOT} を設定、カンマ区切り) を許可に足す。
+ * 先頭が "." の項目はサフィックス一致 (例: .example.com → sartor.example.com)、他は完全一致。
+ */
+function configuredAllowedHosts(): readonly string[] {
+  return (process.env.LUDIARS_ALLOWED_HOSTS ?? "")
+    .split(",")
+    .map((entry) => entry.trim().toLowerCase())
+    .filter((entry) => entry.length > 0);
+}
+
+export function hostnameIsAllowed(hostname: string): boolean {
+  if (localRequestHostnames.includes(hostname)) {
+    return true;
+  }
+  return configuredAllowedHosts().some((entry) =>
+    entry.startsWith(".") ? hostname.endsWith(entry) || hostname === entry.slice(1) : hostname === entry,
+  );
+}
 const publicSecurityHeaders = {
   "content-security-policy": "default-src 'self'; img-src https:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'",
   "referrer-policy": "no-referrer",
@@ -77,8 +97,8 @@ function validateLocalRequestHost(request: IncomingMessage): void {
   } catch {
     throw new HttpError(400, "invalid_host", "A valid local Host header is required.");
   }
-  if (!allowedRequestHostnames.has(hostname)) {
-    throw new HttpError(403, "invalid_host", "Only local requests are allowed.");
+  if (!hostnameIsAllowed(hostname)) {
+    throw new HttpError(403, "invalid_host", "The request Host is not in the allowed host list.");
   }
 }
 

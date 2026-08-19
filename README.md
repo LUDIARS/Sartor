@@ -47,3 +47,5 @@ Amazon 取得は固定の SartorBot 識別子で `robots.txt` を最初に確認
 `excubitor.catalog.yaml` でサービス `sartor` (port 5395) を宣言しています。Excubitor から起動する場合は
 `claude` CLI へのログインはこのアカウントのローカル設定を使います。`--env-file-if-exists` は他の任意設定のために残しています。
 ブラウザは `http://127.0.0.1:5395` を開きます。
+Cloudflare Tunnel 等の外部ドメイン経由でアクセスする場合は、環境変数 `LUDIARS_ALLOWED_HOSTS` (カンマ区切り。`.example.com` はサフィックス一致) に該当ホストを含めます。Excubitor 起動では `sartor${DOMAIN_ROOT}` をこの変数に設定します。
+この許可リストは Host ヘッダーを検証するだけで認証にはなりません。外部公開するトンネルには Cloudflare Access 等の上流アクセス制御を必ず設定してください。
