@@ -1,3 +1,4 @@
+import { normalizeSizeLabel, type JapaneseSize } from "../domain/size.js";
 import type { Profile, ProfileInput } from "../domain/types.js";
 import type { SartorDatabase } from "./db.js";
 
@@ -57,6 +58,12 @@ function readStringArray(row: SqlRow, column: string): string[] {
   return parsed;
 }
 
+/** @implements SPEC-STEP1-PROTOTYPE §11 — aliases are normalized; unsupported legacy values require reselection without breaking profile reads. */
+function readJapaneseSize(row: SqlRow, column: string): JapaneseSize | null {
+  const raw = requiredText(row, column);
+  return normalizeSizeLabel(raw) ?? null;
+}
+
 function profileFromRow(row: SqlRow): Profile {
   const gender = requiredText(row, "gender");
   const ageBand = requiredText(row, "age_band");
@@ -72,8 +79,9 @@ function profileFromRow(row: SqlRow): Profile {
     gender,
     ageBand: ageBand as Profile["ageBand"],
     heightCm: nullableInteger(row, "height_cm"),
-    topSize: requiredText(row, "top_size"),
-    bottomSize: requiredText(row, "bottom_size"),
+    weightKg: nullableInteger(row, "weight_kg"),
+    topSize: readJapaneseSize(row, "top_size"),
+    bottomSize: readJapaneseSize(row, "bottom_size"),
     bodyNotes: nullableText(row, "body_notes"),
     favColors: readStringArray(row, "fav_colors_json"),
     avoidColors: readStringArray(row, "avoid_colors_json"),
@@ -97,15 +105,16 @@ export class ProfileRepository {
     const updatedAt = new Date().toISOString();
     this.database.prepare(`
       INSERT INTO profiles (
-        id, display_name, gender, age_band, height_cm, top_size, bottom_size, body_notes,
+        id, display_name, gender, age_band, height_cm, weight_kg, top_size, bottom_size, body_notes,
         fav_colors_json, avoid_colors_json, ng_materials_json, uses_dryer, avoid_color_bleed,
         monthly_budget_jpy, updated_at
-      ) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(id) DO UPDATE SET
         display_name = excluded.display_name,
         gender = excluded.gender,
         age_band = excluded.age_band,
         height_cm = excluded.height_cm,
+        weight_kg = excluded.weight_kg,
         top_size = excluded.top_size,
         bottom_size = excluded.bottom_size,
         body_notes = excluded.body_notes,
@@ -121,6 +130,7 @@ export class ProfileRepository {
       input.gender,
       input.ageBand,
       input.heightCm ?? null,
+      input.weightKg ?? null,
       input.topSize,
       input.bottomSize,
       input.bodyNotes ?? null,

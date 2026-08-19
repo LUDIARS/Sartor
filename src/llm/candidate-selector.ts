@@ -1,6 +1,8 @@
+import { garmentOffersSize } from "../domain/size.js";
 import type { Garment, GarmentKind, Profile } from "../domain/types.js";
 
 const MAXIMUM_CANDIDATES = 60;
+const TOP_SIZE_KINDS: ReadonlySet<GarmentKind> = new Set(["tops", "outer", "onepiece", "inner"]);
 
 function garmentMatchesGender(garment: Garment, profile: Profile): boolean {
   return profile.gender === "UNISEX" || garment.gender === "UNISEX" || garment.gender === profile.gender;
@@ -9,6 +11,17 @@ function garmentMatchesGender(garment: Garment, profile: Profile): boolean {
 function garmentUsesNgMaterial(garment: Garment, profile: Profile): boolean {
   const composition = garment.composition?.toLocaleLowerCase() ?? "";
   return profile.ngMaterials.some((material) => composition.includes(material.toLocaleLowerCase()));
+}
+
+/** @implements SPEC-STEP1-PROTOTYPE §11 — 上半身基準の服は topSize、ボトムスは bottomSize で絞る。サイズ不明の商品は残す。 */
+function garmentFitsProfileSize(garment: Garment, profile: Profile): boolean {
+  if (TOP_SIZE_KINDS.has(garment.kind)) {
+    return profile.topSize === null || garmentOffersSize(garment.sizes, profile.topSize);
+  }
+  if (garment.kind === "bottoms") {
+    return profile.bottomSize === null || garmentOffersSize(garment.sizes, profile.bottomSize);
+  }
+  return true;
 }
 
 export function selectCandidateGarments(
@@ -21,6 +34,7 @@ export function selectCandidateGarments(
   return garments
     .filter((garment) => garmentMatchesGender(garment, profile))
     .filter((garment) => requestedKinds.has(garment.kind))
+    .filter((garment) => garmentFitsProfileSize(garment, profile))
     .filter((garment) => garment.priceJpy <= budgetJpy)
     .filter((garment) => !garmentUsesNgMaterial(garment, profile))
     .filter((garment) => !profile.usesDryer || garment.dryerOk !== false)

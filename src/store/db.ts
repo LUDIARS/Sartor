@@ -35,6 +35,7 @@ const migrationSql = `
     gender TEXT NOT NULL,
     age_band TEXT NOT NULL,
     height_cm INTEGER,
+    weight_kg INTEGER,
     top_size TEXT NOT NULL,
     bottom_size TEXT NOT NULL,
     body_notes TEXT,
@@ -98,10 +99,25 @@ function resolveDatabasePath(): string {
     : resolve(configuredPath);
 }
 
+/** @implements SPEC-STEP1-PROTOTYPE §11 — CREATE TABLE IF NOT EXISTS で増えない列を既存 DB へ冪等に追加する。 */
+const columnAdditions: readonly { table: string; column: string; definition: string }[] = [
+  { table: "profiles", column: "weight_kg", definition: "INTEGER" },
+];
+
+function applyColumnAdditions(database: SartorDatabase): void {
+  for (const addition of columnAdditions) {
+    const columns = database.prepare(`PRAGMA table_info(${addition.table})`).all() as { name: string }[];
+    if (!columns.some((column) => column.name === addition.column)) {
+      database.exec(`ALTER TABLE ${addition.table} ADD COLUMN ${addition.column} ${addition.definition}`);
+    }
+  }
+}
+
 export function openDatabase(databasePath = resolveDatabasePath()): SartorDatabase {
   const database = new DatabaseSync(databasePath);
   try {
     database.exec(migrationSql);
+    applyColumnAdditions(database);
     return database;
   } catch (error) {
     database.close();

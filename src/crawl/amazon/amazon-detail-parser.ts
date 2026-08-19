@@ -138,6 +138,7 @@ function normalizeBrand(value: string | undefined): string | undefined {
     .replace(/^ブランド(?:名)?\s*[:：]?\s*/u, "")
     .replace(/^Visit the\s+/iu, "")
     .replace(/\s+Store$/iu, "")
+    .replace(/のストアを表示$/u, "")
     .trim();
   return normalized.length === 0 ? undefined : normalized;
 }

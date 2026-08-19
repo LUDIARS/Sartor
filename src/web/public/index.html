@@ -19,15 +19,16 @@
       <section id="profile-panel" class="panel">
         <div class="section-heading">
           <p class="step">01</p>
-          <div><h2>プロフィール</h2><p>この端末の SQLite にのみ保存します。</p></div>
+          <div><h2>プロフィール</h2><p>この端末の SQLite にのみ保存します。身長・体重は幅のあるラベルに変換して LLM に渡し、実測値と体型メモは渡しません。</p></div>
         </div>
         <form id="profile-form" class="form-grid">
           <label>表示名 <input name="displayName" maxlength="100" autocomplete="nickname"></label>
           <label>性別区分 <select name="gender" required><option value="WOMEN">WOMEN</option><option value="MEN">MEN</option><option value="UNISEX">UNISEX</option></select></label>
           <label>年代 <select name="ageBand" required><option value="10s">10s</option><option value="20s" selected>20s</option><option value="30s">30s</option><option value="40s">40s</option><option value="50s">50s</option><option value="60s+">60s+</option></select></label>
           <label>身長 cm <input name="heightCm" type="number" min="80" max="260" inputmode="numeric"></label>
-          <label>トップスサイズ <input name="topSize" required maxlength="50" placeholder="例: M"></label>
-          <label>ボトムスサイズ <input name="bottomSize" required maxlength="50" placeholder="例: 76cm / M"></label>
+          <label>体重 kg <input name="weightKg" type="number" min="20" max="300" inputmode="numeric"></label>
+          <label>トップスサイズ (日本サイズ) <select name="topSize" required><option value="" disabled>選択してください</option><option value="XS">XS</option><option value="S">S</option><option value="M" selected>M</option><option value="L">L</option><option value="XL">XL (LL)</option><option value="XXL">XXL (3L)</option><option value="3XL">3XL (4L)</option><option value="4XL">4XL (5L)</option></select></label>
+          <label>ボトムスサイズ (日本サイズ) <select name="bottomSize" required><option value="" disabled>選択してください</option><option value="XS">XS</option><option value="S">S</option><option value="M" selected>M</option><option value="L">L</option><option value="XL">XL (LL)</option><option value="XXL">XXL (3L)</option><option value="3XL">3XL (4L)</option><option value="4XL">4XL (5L)</option></select></label>
           <label class="full-width">体型メモ <textarea name="bodyNotes" maxlength="1000" placeholder="例: 肩幅が広め"></textarea></label>
           <label>好きな色 <input name="favColors" maxlength="300" placeholder="カンマ区切り: ネイビー, 白"></label>
           <label>避けたい色 <input name="avoidColors" maxlength="300" placeholder="カンマ区切り: 蛍光色"></label>

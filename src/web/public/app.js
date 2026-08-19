@@ -98,6 +98,7 @@ function decorateTpoOptions() {
 function profilePayload() {
   const values = new FormData(profileForm);
   const heightValue = String(values.get("heightCm") ?? "").trim();
+  const weightValue = String(values.get("weightKg") ?? "").trim();
   const bodyNotes = String(values.get("bodyNotes") ?? "").trim();
   const displayName = String(values.get("displayName") ?? "").trim();
   return {
@@ -105,6 +106,7 @@ function profilePayload() {
     gender: String(values.get("gender")),
     ageBand: String(values.get("ageBand")),
     heightCm: heightValue ? Number(heightValue) : null,
+    weightKg: weightValue ? Number(weightValue) : null,
     topSize: String(values.get("topSize") ?? "").trim(),
     bottomSize: String(values.get("bottomSize") ?? "").trim(),
     bodyNotes: bodyNotes || null,
@@ -123,8 +125,9 @@ function populateProfile(profile) {
     gender: profile.gender,
     ageBand: profile.ageBand,
     heightCm: profile.heightCm ?? "",
-    topSize: profile.topSize,
-    bottomSize: profile.bottomSize,
+    weightKg: profile.weightKg ?? "",
+    topSize: profile.topSize ?? "",
+    bottomSize: profile.bottomSize ?? "",
     bodyNotes: profile.bodyNotes ?? "",
     favColors: profile.favColors.join(", "),
     avoidColors: profile.avoidColors.join(", "),
@@ -338,6 +341,10 @@ async function initialize() {
       populateProfile(profile);
       state.budgetJpy = profile.monthlyBudgetJpy;
       budgetForm.elements.budgetJpy.value = String(profile.monthlyBudgetJpy);
+      if (profile.topSize === null || profile.bottomSize === null) {
+        setStatus("保存済みのサイズ表記を自動変換できませんでした。日本サイズを選び直してプロフィールを保存してください。", true);
+        return;
+      }
       showPanel("vector-panel");
       setStatus("保存済みプロフィールを読み込みました。ベクトルを選んでください。");
       await loadHistory();

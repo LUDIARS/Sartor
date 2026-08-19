@@ -55,6 +55,9 @@ async function handleCollection(request: IncomingMessage, response: ServerRespon
   if (profile === null) {
     throw new HttpError(409, "profile_required", "Save a profile before requesting an outfit proposal.");
   }
+  if (profile.topSize === null || profile.bottomSize === null) {
+    throw new HttpError(409, "profile_size_update_required", "Re-save the profile with supported Japanese sizes before requesting a proposal.");
+  }
   const candidateGenders = profile.gender === "UNISEX" ? undefined : [profile.gender, "UNISEX"] as const;
   const candidates = selectCandidateGarments(
     context.garments.search({

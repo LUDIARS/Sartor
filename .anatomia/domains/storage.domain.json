@@ -6,6 +6,9 @@
   "membership": [
     {
       "pathPattern": "(^|/)src/store/.*\\.ts$"
+    },
+    {
+      "pathPattern": "(^|/)tests/profile-repo\\.test\\.ts$"
     }
   ],
   "source": "spec-draft",

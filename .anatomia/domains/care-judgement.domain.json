@@ -8,7 +8,7 @@
       "pathPattern": "(^|/)src/domain/care-rules\\.ts$"
     },
     {
-      "pathPattern": "(^|/)tests/.*\\.test\\.ts$"
+      "pathPattern": "(^|/)tests/care-rules\\.test\\.ts$"
     }
   ],
   "source": "spec-draft",

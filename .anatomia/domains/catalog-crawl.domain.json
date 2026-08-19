@@ -9,6 +9,9 @@
     },
     {
       "pathPattern": "(^|/)src/(crawl/.*|cli/crawl)\\.ts$"
+    },
+    {
+      "pathPattern": "(^|/)tests/amazon-.*\\.test\\.ts$"
     }
   ],
   "source": "spec-draft",

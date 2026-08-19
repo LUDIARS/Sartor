@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { japaneseSizeSchema } from "./size.js";
+
 export const genderSchema = z.enum(["WOMEN", "MEN", "UNISEX"]);
 export type Gender = z.infer<typeof genderSchema>;
 
@@ -81,8 +83,9 @@ export const profileSchema = z.object({
   gender: genderSchema,
   ageBand: ageBandSchema,
   heightCm: z.number().int().min(80).max(260).nullable(),
-  topSize: z.string().trim().min(1).max(50),
-  bottomSize: z.string().trim().min(1).max(50),
+  weightKg: z.number().int().min(20).max(300).nullable(),
+  topSize: japaneseSizeSchema.nullable(),
+  bottomSize: japaneseSizeSchema.nullable(),
   bodyNotes: z.string().trim().max(1_000).nullable(),
   favColors: z.array(z.string().trim().min(1).max(50)).max(20),
   avoidColors: z.array(z.string().trim().min(1).max(50)).max(20),
@@ -99,6 +102,9 @@ export const profileInputSchema = profileSchema
   .extend({
     displayName: z.string().trim().max(100).optional().nullable(),
     heightCm: z.number().int().min(80).max(260).optional().nullable(),
+    weightKg: z.number().int().min(20).max(300).optional().nullable(),
+    topSize: japaneseSizeSchema,
+    bottomSize: japaneseSizeSchema,
     bodyNotes: z.string().trim().max(1_000).optional().nullable(),
   });
 export type ProfileInput = z.infer<typeof profileInputSchema>;

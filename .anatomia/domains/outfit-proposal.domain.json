@@ -8,7 +8,10 @@
       "pathPattern": "(^|/)src/llm/(claude-cli-.*|proposal-parser)\\.ts$"
     },
     {
-      "pathPattern": "(^|/)src/(llm/.*|domain/(fashion-vectors|budget|types))\\.ts$"
+      "pathPattern": "(^|/)src/(llm/.*|domain/(fashion-vectors|budget|types|size))\\.ts$"
+    },
+    {
+      "pathPattern": "(^|/)tests/(claude-cli-runner|size|candidate-selector|prompt)\\.test\\.ts$"
     }
   ],
   "source": "spec-draft",
