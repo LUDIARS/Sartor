@@ -1,0 +1,29 @@
+# Excubitor catalog fragment (Sartor)
+# 集積仕様: Excubitor catalog/FRAGMENTS.md (定義の正本は所有リポのこのファイルだけ)
+services:
+  - code: sartor
+    name: Sartor (予算内コーディネート提案)
+    tier: personal
+    project_code: sartor
+    component: web
+    port: 5395
+    repo: LUDIARS/Sartor
+    runtime: node
+    cwd: ${ARS_ROOT}/Sartor
+    # .env (gitignore 済) に ANTHROPIC_API_KEY を置く。無ければ提案 API だけ 503 llm_not_configured。
+    command: npx --no-install tsx --env-file-if-exists=.env src/cli/serve.ts
+    autostart: false
+    allow_hot_reload: false
+    restart_policy: on-failure
+    max_restart: 3
+    env:
+      PORT: "5395"
+    required_env: []
+    log_path: ${ARS_ROOT}/logs/sartor
+    health:
+      type: http
+      url: http://127.0.0.1:5395/api/health
+      interval_sec: 30
+      grace_period_sec: 10
+    provides:
+      SARTOR_URL: http://127.0.0.1:${port}

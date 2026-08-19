@@ -26,3 +26,9 @@ POSIX シェルでは、最後の 2 行を `ANTHROPIC_API_KEY=... npm run serve`
 
 ブラウザで `http://localhost:3000` を開きます。`PORT` を設定すると待受ポートを変更できます。
 `ANTHROPIC_API_KEY` がない状態で提案を依頼すると、提案を作らずに明示エラーを返します。
+
+### Excubitor 経由で起動する
+
+`excubitor.catalog.yaml` でサービス `sartor` (port 5395) を宣言しています。Excubitor から起動する場合は
+リポ直下の `.env` (gitignore 済) に `ANTHROPIC_API_KEY=...` を置くと `--env-file-if-exists` で読み込まれます。
+ブラウザは `http://127.0.0.1:5395` を開きます。
