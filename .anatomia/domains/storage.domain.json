@@ -1,0 +1,15 @@
+{
+  "name": "storage",
+  "description": "Sartor storage domain (Step 1 prototype).",
+  "presetRules": [],
+  "templateRules": [],
+  "membership": [
+    {
+      "pathPattern": "(^|/)src/store/.*\\.ts$"
+    }
+  ],
+  "source": "spec-draft",
+  "specRefs": [
+    "spec/SPEC-STEP1-PROTOTYPE.md"
+  ]
+}

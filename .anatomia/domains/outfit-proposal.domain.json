@@ -1,0 +1,15 @@
+{
+  "name": "outfit-proposal",
+  "description": "Sartor outfit-proposal domain (Step 1 prototype).",
+  "presetRules": [],
+  "templateRules": [],
+  "membership": [
+    {
+      "pathPattern": "(^|/)src/(llm/.*|domain/(fashion-vectors|budget|types))\\.ts$"
+    }
+  ],
+  "source": "spec-draft",
+  "specRefs": [
+    "spec/SPEC-STEP1-PROTOTYPE.md"
+  ]
+}

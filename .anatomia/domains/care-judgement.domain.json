@@ -1,0 +1,18 @@
+{
+  "name": "care-judgement",
+  "description": "Sartor care-judgement domain (Step 1 prototype).",
+  "presetRules": [],
+  "templateRules": [],
+  "membership": [
+    {
+      "pathPattern": "(^|/)src/domain/care-rules\\.ts$"
+    },
+    {
+      "pathPattern": "(^|/)tests/.*\\.test\\.ts$"
+    }
+  ],
+  "source": "spec-draft",
+  "specRefs": [
+    "spec/SPEC-STEP1-PROTOTYPE.md"
+  ]
+}
