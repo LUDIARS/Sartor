@@ -1,0 +1,15 @@
+{
+  "name": "catalog-crawl",
+  "description": "Sartor catalog-crawl domain (Step 1 prototype).",
+  "presetRules": [],
+  "templateRules": [],
+  "membership": [
+    {
+      "pathPattern": "(^|/)src/(crawl/.*|cli/crawl)\\.ts$"
+    }
+  ],
+  "source": "spec-draft",
+  "specRefs": [
+    "spec/SPEC-STEP1-PROTOTYPE.md"
+  ]
+}

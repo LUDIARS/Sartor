@@ -1,0 +1,15 @@
+{
+  "name": "web-ui",
+  "description": "Sartor web-ui domain (Step 1 prototype).",
+  "presetRules": [],
+  "templateRules": [],
+  "membership": [
+    {
+      "pathPattern": "(^|/)src/(web/.*|cli/serve|log)\\.(ts|html|js|css)$"
+    }
+  ],
+  "source": "spec-draft",
+  "specRefs": [
+    "spec/SPEC-STEP1-PROTOTYPE.md"
+  ]
+}

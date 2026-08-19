@@ -1,0 +1,9 @@
+node_modules/
+dist/
+data/
+.env
+.env.*
+!.env.example
+/sartor.sqlite
+/sartor.sqlite-*
+.anatomia/link-stability.json
