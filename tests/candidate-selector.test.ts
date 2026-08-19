@@ -68,3 +68,27 @@ test("selectCandidateGarments applies top and bottom profile sizes to every size
 
   assert.deepEqual(selected.map(({ id }) => id), ["bottoms-match", "onepiece-match", "shoes-unknown", "tops-match"]);
 });
+
+test("selectCandidateGarments fills the candidate limit while keeping kinds balanced", () => {
+  const garments = [
+    garment("tops-only", "tops", ["M"]),
+    ...Array.from({ length: 100 }, (_, index) => garment(`bottoms-${index}`, "bottoms", ["L"])),
+  ];
+
+  const selected = selectCandidateGarments(garments, profile, ["tops", "bottoms"], 10_000);
+
+  assert.equal(selected.length, 60);
+  assert.equal(selected.filter(({ kind }) => kind === "tops").length, 1);
+  assert.equal(selected.filter(({ kind }) => kind === "bottoms").length, 59);
+});
+
+test("selectCandidateGarments does not duplicate candidates for repeated requested kinds", () => {
+  const garments = [
+    garment("tops-1", "tops", ["M"]),
+    garment("tops-2", "tops", ["M"]),
+  ];
+
+  const selected = selectCandidateGarments(garments, profile, ["tops", "tops"], 10_000);
+
+  assert.deepEqual(selected.map(({ id }) => id), ["tops-1", "tops-2"]);
+});
