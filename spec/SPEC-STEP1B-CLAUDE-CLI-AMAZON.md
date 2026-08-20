@@ -78,7 +78,7 @@ preset `mens-office-casual-40s` (`src/crawl/amazon/amazon-presets.ts`):
 - `src/crawl/amazon-source.ts` (NotConfiguredError) は削除。
 
 ## 3. ドキュメント / Anatomia
-- `.anatomia/domains/catalog-crawl.domain.json` の membership に `src/crawl/amazon/` を追加、`outfit-proposal.domain.json` に `src/llm/claude-cli-*.ts` / `proposal-parser.ts` を追加 (pathPattern で覆う)。`specRefs` に本書を追加。
+- `spec/domains/catalog-crawl.domain.json` の membership に `src/crawl/amazon/` を追加、`spec/domains/outfit-proposal.domain.json` に `src/llm/claude-cli-*.ts` / `proposal-parser.ts` を追加 (pathPattern で覆う)。`specRefs` に本書を追加。
 - `README.md`: 「LLM はローカル `claude` CLI (ログイン済み Claude Code) を使う。API キー不要。未インストール時は 501」「Amazon クロール手順 (preset) と礼儀 (2 s 間隔、120 req/回、CAPTCHA で停止)」を追記。Step 1 §9 の `ANTHROPIC_API_KEY=... npm run serve` 行は削除。
 - `spec/SPEC-STEP1-PROTOTYPE.md` は **編集しない** (歴史)。本書が差分。
 

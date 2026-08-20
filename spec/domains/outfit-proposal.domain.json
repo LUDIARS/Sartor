@@ -20,7 +20,6 @@
       "pathPattern": "(^|/)tests/season-fit\\.test\\.ts$"
     }
   ],
-  "source": "spec-draft",
   "specRefs": [
     "spec/SPEC-STEP1-PROTOTYPE.md",
     "spec/SPEC-STEP1B-CLAUDE-CLI-AMAZON.md",

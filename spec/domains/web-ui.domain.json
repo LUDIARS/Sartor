@@ -8,7 +8,6 @@
       "pathPattern": "(^|/)src/(web/.*|cli/serve|log)\\.(ts|html|js|css)$"
     }
   ],
-  "source": "spec-draft",
   "specRefs": [
     "spec/SPEC-STEP1-PROTOTYPE.md",
     "spec/SPEC-STEP1C-CRAWLER-DEPTH-SUBKIND.md",
