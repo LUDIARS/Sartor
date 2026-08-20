@@ -19,8 +19,17 @@ legend { padding: 0 .3rem; font-weight: 700; }
 .status.error { color: #9a2b23; }
 .panel { background: #fffdfa; border: 1px solid #ded6cc; border-radius: .8rem; box-shadow: 0 .7rem 1.8rem rgb(53 42 29 / 7%); margin-top: 1.25rem; padding: clamp(1rem, 3vw, 2rem); }
 .section-heading { display: flex; gap: 1rem; align-items: flex-start; margin-bottom: 1.2rem; }
-.section-heading h2 { margin: 0 0 .25rem; }
-.section-heading p { color: #6d665e; margin: 0; }
+.section-heading-content { min-width: 0; }
+summary.section-heading { cursor: pointer; margin-bottom: 0; list-style: none; }
+summary.section-heading::-webkit-details-marker { display: none; }
+summary.section-heading::after { content: "開く"; margin-left: auto; align-self: center; color: #a2533f; font-size: .78rem; font-weight: 800; white-space: nowrap; }
+details[open] > summary.section-heading { margin-bottom: 1.2rem; }
+details[open] > summary.section-heading::after { content: "閉じる"; }
+summary.section-heading:hover .panel-title { color: #a2533f; }
+.panel-title { display: block; margin: 0 0 .25rem; font-size: 1.5em; font-weight: 700; }
+.panel-description, .panel-summary { display: block; }
+.section-heading .panel-summary { color: #31574c; font-weight: 700; margin-top: .35rem; }
+.section-heading .panel-description { color: #6d665e; }
 .step { margin: .3rem 0 0; }
 .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
 .form-grid > label { display: grid; gap: .35rem; color: #4b433b; font-weight: 700; }

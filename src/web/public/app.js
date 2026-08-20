@@ -1,3 +1,5 @@
+import { collapsePanel, openPanel, showPanel } from "/panels.js";
+
 const DEFAULT_MONTHLY_BUDGET = 30000;
 const STYLE_LABELS = {
   clean: "きれいめ", casual: "カジュアル", street: "ストリート", mode: "モード", natural: "ナチュラル",
@@ -23,8 +25,26 @@ function setStatus(message, isError = false) {
   statusMessage.classList.toggle("error", isError);
 }
 
-function showPanel(id) {
-  document.querySelector(`#${id}`).hidden = false;
+const KIND_LABELS = {
+  tops: "トップス", bottoms: "ボトムス", outer: "アウター", onepiece: "ワンピース",
+  shoes: "シューズ", accessory: "小物", inner: "インナー", other: "その他",
+};
+
+function profileSummary(profile) {
+  const name = profile.displayName ? `${profile.displayName} / ` : "";
+  const build = profile.heightCm && profile.weightKg ? ` / ${profile.heightCm}cm ${profile.weightKg}kg` : "";
+  return `${name}${profile.gender} ${profile.ageBand}${build} / トップス ${profile.topSize}・ボトムス ${profile.bottomSize} / 月予算 ${formatJpy(profile.monthlyBudgetJpy)}`;
+}
+
+function vectorSummary(vector) {
+  const styles = vector.styles.map((entry) => `${STYLE_LABELS[entry.style] ?? entry.style}${entry.weight}`).join("・");
+  const season = vector.season ? ` / ${vector.season}` : "";
+  const colorTone = vector.colorTone ? ` / ${vector.colorTone}` : "";
+  return `${vector.ageBand} × ${TPO_LABELS[vector.tpo] ?? vector.tpo} / ${styles}${season}${colorTone}`;
+}
+
+function budgetSummary(budgetJpy, kinds) {
+  return `上限 ${formatJpy(budgetJpy)} / ${kinds.map((kind) => KIND_LABELS[kind] ?? kind).join("・")}`;
 }
 
 function splitList(value) {
@@ -280,8 +300,9 @@ profileForm.addEventListener("submit", async (event) => {
     vectorAgeBand.value = profile.ageBand;
     renderVectorDefaults();
     budgetForm.elements.budgetJpy.value = String(state.budgetJpy);
-    showPanel("vector-panel");
-    setStatus("プロフィールを保存しました。次に装いのベクトルを選んでください。");
+    collapsePanel("profile-panel", profileSummary(profile));
+    openPanel("vector-panel");
+    setStatus("プロフィールを保存しました。次に装いのベクトルを選んでください。編集する時は 01 の見出しを開いてください。");
   } catch (error) {
     setStatus(error instanceof Error ? error.message : "プロフィールを保存できませんでした。", true);
   }
@@ -298,7 +319,8 @@ vectorForm.addEventListener("submit", (event) => {
     return;
   }
   state.vector = vector;
-  showPanel("budget-panel");
+  collapsePanel("vector-panel", vectorSummary(vector));
+  openPanel("budget-panel");
   setStatus("予算と対象アイテムを選んで、3 案の提案を依頼してください。");
 });
 
@@ -316,6 +338,7 @@ budgetForm.addEventListener("submit", async (event) => {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ vector: state.vector, budgetJpy: Number(budgetForm.elements.budgetJpy.value), kinds }),
     });
+    collapsePanel("budget-panel", budgetSummary(Number(budgetForm.elements.budgetJpy.value), kinds));
     renderProposals(proposalId, options);
     await loadHistory();
     setStatus("3 案を生成しました。ケアの注意を確認して判断してください。");
@@ -345,8 +368,9 @@ async function initialize() {
         setStatus("保存済みのサイズ表記を自動変換できませんでした。日本サイズを選び直してプロフィールを保存してください。", true);
         return;
       }
-      showPanel("vector-panel");
-      setStatus("保存済みプロフィールを読み込みました。ベクトルを選んでください。");
+      collapsePanel("profile-panel", profileSummary(profile));
+      openPanel("vector-panel");
+      setStatus("保存済みプロフィールを読み込みました。ベクトルを選んでください。プロフィールを直す時は 01 の見出しを開いてください。");
       await loadHistory();
     } else {
       setStatus("最初にプロフィールを入力してください。");

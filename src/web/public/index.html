@@ -16,11 +16,15 @@
 
       <p id="status-message" class="status" role="status" aria-live="polite"></p>
 
-      <section id="profile-panel" class="panel">
-        <div class="section-heading">
-          <p class="step">01</p>
-          <div><h2>プロフィール</h2><p>この端末の SQLite にのみ保存します。身長・体重は幅のあるラベルに変換して LLM に渡し、実測値と体型メモは渡しません。</p></div>
-        </div>
+      <details id="profile-panel" class="panel" open>
+        <summary class="section-heading">
+          <span class="step">01</span>
+          <span class="section-heading-content">
+            <span class="panel-title" role="heading" aria-level="2">プロフィール</span>
+            <span class="panel-description">この端末の SQLite にのみ保存します。身長・体重は幅のあるラベルに変換して LLM に渡し、実測値と体型メモは渡しません。</span>
+            <span class="panel-summary" data-summary hidden></span>
+          </span>
+        </summary>
         <form id="profile-form" class="form-grid">
           <label>表示名 <input name="displayName" maxlength="100" autocomplete="nickname"></label>
           <label>性別区分 <select name="gender" required><option value="WOMEN">WOMEN</option><option value="MEN">MEN</option><option value="UNISEX">UNISEX</option></select></label>
@@ -37,10 +41,10 @@
           <fieldset class="toggles full-width"><legend>ケアの希望</legend><label><input name="usesDryer" type="checkbox"> 乾燥機を使う</label><label><input name="avoidColorBleed" type="checkbox"> 色落ちを避けたい</label></fieldset>
           <div class="form-action full-width"><button type="submit">プロフィールを保存して進む</button></div>
         </form>
-      </section>
+      </details>
 
-      <section id="vector-panel" class="panel" hidden>
-        <div class="section-heading"><p class="step">02</p><div><h2>装いのベクトル</h2><p>年代と TPO の既定値から、好みを調整します。</p></div></div>
+      <details id="vector-panel" class="panel" hidden>
+        <summary class="section-heading"><span class="step">02</span><span class="section-heading-content"><span class="panel-title" role="heading" aria-level="2">装いのベクトル</span><span class="panel-description">年代と TPO の既定値から、好みを調整します。</span><span class="panel-summary" data-summary hidden></span></span></summary>
         <form id="vector-form" class="form-grid">
           <label>年代 <select name="ageBand" id="vector-age-band"></select></label>
           <label>TPO <select name="tpo" id="vector-tpo"></select></label>
@@ -49,16 +53,16 @@
           <label>色調（任意）<select name="colorTone" id="vector-color-tone"><option value="">指定しない</option></select></label>
           <div class="form-action full-width"><button type="submit">予算を決める</button></div>
         </form>
-      </section>
+      </details>
 
-      <section id="budget-panel" class="panel" hidden>
-        <div class="section-heading"><p class="step">03</p><div><h2>今回の予算と対象</h2><p>上限金額と、コーデに含めたいアイテムを指定します。</p></div></div>
+      <details id="budget-panel" class="panel" hidden>
+        <summary class="section-heading"><span class="step">03</span><span class="section-heading-content"><span class="panel-title" role="heading" aria-level="2">今回の予算と対象</span><span class="panel-description">上限金額と、コーデに含めたいアイテムを指定します。</span><span class="panel-summary" data-summary hidden></span></span></summary>
         <form id="budget-form" class="form-grid">
           <label>コーデ上限 JPY <input name="budgetJpy" type="number" min="1" required inputmode="numeric"></label>
           <fieldset class="full-width"><legend>対象アイテム種別</legend><div class="kind-choices"><label><input type="checkbox" name="kinds" value="tops" checked> トップス</label><label><input type="checkbox" name="kinds" value="bottoms" checked> ボトムス</label><label><input type="checkbox" name="kinds" value="outer"> アウター</label><label><input type="checkbox" name="kinds" value="onepiece"> ワンピース</label><label><input type="checkbox" name="kinds" value="shoes"> シューズ</label><label><input type="checkbox" name="kinds" value="accessory"> 小物</label></div></fieldset>
           <div class="form-action full-width"><button type="submit">3 案を提案する</button></div>
         </form>
-      </section>
+      </details>
 
       <section id="proposals" class="panel" hidden aria-live="polite">
         <div class="section-heading"><p class="step">04</p><div><h2>3 つの提案</h2><p>乾燥機・色落ちの注意も確認してから、人が判断します。</p></div></div>

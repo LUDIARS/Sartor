@@ -23,6 +23,7 @@ const publicAssets = new Map<string, { fileName: string; contentType: string }>(
   ["/", { fileName: "index.html", contentType: "text/html; charset=utf-8" }],
   ["/index.html", { fileName: "index.html", contentType: "text/html; charset=utf-8" }],
   ["/app.js", { fileName: "app.js", contentType: "text/javascript; charset=utf-8" }],
+  ["/panels.js", { fileName: "panels.js", contentType: "text/javascript; charset=utf-8" }],
   ["/style.css", { fileName: "style.css", contentType: "text/css; charset=utf-8" }],
 ]);
 const localRequestHostnames: readonly string[] = ["localhost", "127.0.0.1"];
