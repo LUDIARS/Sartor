@@ -1,4 +1,5 @@
 import { judgeCare } from "../domain/care-rules.js";
+import { classifyGarmentSubKind } from "../domain/subkind-classifier.js";
 import type { Garment, GarmentKind, Gender } from "../domain/types.js";
 
 import type { BrandCatalog } from "./brand-catalog.js";
@@ -34,6 +35,7 @@ export function mapFastRetailingGarment(
   details: FastRetailProductDetails,
   gender: Gender,
   kind: GarmentKind,
+  className: string,
 ): Garment {
   const composition = details.composition ?? null;
   const washingInformation = details.washingInformation ?? null;
@@ -54,6 +56,7 @@ export function mapFastRetailingGarment(
     name: item.name,
     gender,
     kind,
+    subKind: classifyGarmentSubKind(kind, item.name, className),
     priceJpy: priceFromItem(item),
     currency: "JPY",
     colors,

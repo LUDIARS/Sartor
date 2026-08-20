@@ -1,153 +1,89 @@
-import { AmazonCrawlRunner } from "../crawl/amazon/amazon-crawl-runner.js";
-import {
-  amazonPresetNames,
-  queriesForAmazonPreset,
-  type AmazonPresetName,
-} from "../crawl/amazon/amazon-presets.js";
-import { brandCatalogs, type FastRetailingBrand } from "../crawl/brand-catalog.js";
-import { crawlBrandCatalog } from "../crawl/crawl-runner.js";
-import type { Gender } from "../domain/types.js";
+import { AmazonCooldownGuard } from "../crawl/amazon/amazon-cooldown.js";
+import { AmazonCrawlRunner, type AmazonCrawlRequest } from "../crawl/amazon/amazon-crawl-runner.js";
+import { queriesForAmazonPreset } from "../crawl/amazon/amazon-presets.js";
+import { crawlBrand } from "../crawl/crawl-plan.js";
+import type { CrawlResult } from "../crawl/crawl-runner.js";
 import { logError, logInfo } from "../log.js";
-import { closeDatabase, openDatabase } from "../store/db.js";
+import { AmazonProgressRepository } from "../store/amazon-progress-repo.js";
+import { CrawlCooldownRepository } from "../store/crawl-cooldown-repo.js";
+import { closeDatabase, openDatabase, type SartorDatabase } from "../store/db.js";
 import { GarmentRepository } from "../store/garment-repo.js";
 
-interface FastRetailingCrawlArguments {
-  readonly brand: FastRetailingBrand;
-  readonly gender: Gender;
-  readonly classArgument: string;
-  readonly limit: number;
-}
+import {
+  parseCrawlArguments,
+  type AmazonPresetCrawlArguments,
+  type AmazonQueryCrawlArguments,
+} from "./crawl-arguments.js";
 
-interface AmazonQueryCrawlArguments {
-  readonly brand: "amazon";
-  readonly gender: Gender;
-  readonly classArgument: string;
-  readonly query: string;
-  readonly limit: number;
-}
-
-interface AmazonPresetCrawlArguments {
-  readonly brand: "amazon";
-  readonly gender: Gender;
-  readonly preset: AmazonPresetName;
-  readonly limit: number;
-}
-
-type CrawlArguments = FastRetailingCrawlArguments | AmazonQueryCrawlArguments | AmazonPresetCrawlArguments;
-
-function readArgument(argumentsList: readonly string[], name: string): string {
-  const value = readOptionalArgument(argumentsList, name);
-  if (value === undefined) {
-    throw new Error(`Missing required argument ${name}.`);
-  }
-  return value;
-}
-
-function readOptionalArgument(argumentsList: readonly string[], name: string): string | undefined {
-  const position = argumentsList.indexOf(name);
-  if (position < 0) {
-    return undefined;
-  }
-  const value = argumentsList[position + 1];
-  if (value === undefined || value.trim().length === 0 || value.startsWith("--")) {
-    throw new Error(`Missing value for ${name}.`);
-  }
-  return value;
-}
-
-function parseGender(value: string): Gender {
-  if (value === "WOMEN" || value === "MEN" || value === "UNISEX") {
-    return value;
-  }
-  throw new Error("--gender must be WOMEN, MEN, or UNISEX.");
-}
-
-function parseLimit(argumentsList: readonly string[]): number {
-  const limit = Number(readArgument(argumentsList, "--limit"));
-  if (!Number.isSafeInteger(limit) || limit < 1) {
-    throw new Error("--limit must be a positive integer.");
-  }
-  return limit;
-}
-
-function parseArguments(argumentsList: readonly string[]): CrawlArguments {
-  const rawBrand = readArgument(argumentsList, "--brand");
-  const limit = parseLimit(argumentsList);
-  if (rawBrand in brandCatalogs) {
-    return {
-      brand: rawBrand as FastRetailingBrand,
-      gender: parseGender(readArgument(argumentsList, "--gender")),
-      classArgument: readArgument(argumentsList, "--class"),
-      limit,
-    };
-  }
-  if (rawBrand !== "amazon") {
-    throw new Error("--brand must be uniqlo, gu, or amazon.");
-  }
-
-  const query = readOptionalArgument(argumentsList, "--query");
-  const preset = readOptionalArgument(argumentsList, "--preset");
-  if (query !== undefined && preset !== undefined) {
-    throw new Error("Amazon crawl accepts either --query or --preset, not both.");
-  }
-  if (query === undefined && preset === undefined) {
-    throw new Error("Amazon crawl requires --query or --preset.");
-  }
-  if (query !== undefined) {
-    return {
-      brand: "amazon",
-      gender: parseGender(readArgument(argumentsList, "--gender")),
-      classArgument: readArgument(argumentsList, "--class"),
-      query,
-      limit,
-    };
-  }
-  if (!amazonPresetNames.includes(preset as AmazonPresetName)) {
-    throw new Error(`--preset must be ${amazonPresetNames.join(" or ")}.`);
-  }
-  return {
-    brand: "amazon",
-    gender: parseGender(readOptionalArgument(argumentsList, "--gender") ?? "MEN"),
-    preset: preset as AmazonPresetName,
-    limit,
-  };
-}
-
-function logCompleted(result: { brand: string; gender: Gender; className: string; upserted: number }): void {
+function logFastRetailingResult(result: CrawlResult): void {
   logInfo("catalog_crawl_completed", {
     brand: result.brand,
     gender: result.gender,
     className: result.className,
+    kind: result.kind,
     upserted: result.upserted,
+    skippedFresh: result.skippedFresh,
   });
 }
 
-async function crawlAmazon(repository: GarmentRepository, argumentsList: AmazonQueryCrawlArguments | AmazonPresetCrawlArguments): Promise<void> {
+function amazonRunnerFor(database: SartorDatabase): AmazonCrawlRunner {
+  return new AmazonCrawlRunner({
+    garments: new GarmentRepository(database),
+    progress: new AmazonProgressRepository(database),
+    cooldown: new AmazonCooldownGuard(new CrawlCooldownRepository(database)),
+  });
+}
+
+function amazonRequestsFor(argumentsList: AmazonQueryCrawlArguments | AmazonPresetCrawlArguments): AmazonCrawlRequest[] {
   if ("query" in argumentsList) {
-    logCompleted(await new AmazonCrawlRunner(repository).crawl(argumentsList));
-    return;
-  }
-  for (const query of queriesForAmazonPreset(argumentsList.preset)) {
-    logCompleted(await new AmazonCrawlRunner(repository).crawl({
+    return [{
       gender: argumentsList.gender,
-      classArgument: query.classArgument,
-      query: query.query,
+      classArgument: argumentsList.classArgument,
+      query: argumentsList.query,
       limit: argumentsList.limit,
-    }));
+      ...(argumentsList.subKind === undefined ? {} : { subKind: argumentsList.subKind }),
+      restart: argumentsList.restart,
+    }];
+  }
+  return queriesForAmazonPreset(argumentsList.preset).map((presetQuery) => ({
+    gender: argumentsList.gender,
+    classArgument: presetQuery.classArgument,
+    query: presetQuery.query,
+    subKind: presetQuery.subKind,
+    limit: argumentsList.limit,
+    restart: argumentsList.restart,
+  }));
+}
+
+/** @implements SPEC-STEP1C §4 — preset は未完了クエリだけを順に消化し、CAPTCHA で全体を止める。 */
+async function crawlAmazon(database: SartorDatabase, argumentsList: AmazonQueryCrawlArguments | AmazonPresetCrawlArguments): Promise<void> {
+  for (const request of amazonRequestsFor(argumentsList)) {
+    const result = await amazonRunnerFor(database).crawl(request);
+    logInfo("catalog_crawl_completed", {
+      brand: result.brand,
+      gender: result.gender,
+      className: result.className,
+      subKind: request.subKind,
+      upserted: result.upserted,
+      filtered: result.filtered,
+      startedAtPage: result.startedAtPage,
+      completed: result.completed,
+    });
   }
 }
 
 async function main(): Promise<void> {
-  const argumentsList = parseArguments(process.argv.slice(2));
+  const argumentsList = parseCrawlArguments(process.argv.slice(2));
   const database = openDatabase();
   try {
-    const repository = new GarmentRepository(database);
     if (argumentsList.brand === "amazon") {
-      await crawlAmazon(repository, argumentsList);
+      await crawlAmazon(database, argumentsList);
       return;
     }
-    const result = await crawlBrandCatalog(repository, argumentsList);
-    logCompleted(result);
+    const results = await crawlBrand(new GarmentRepository(database), argumentsList);
+    for (const result of results) {
+      logFastRetailingResult(result);
+    }
   } finally {
     closeDatabase(database);
   }

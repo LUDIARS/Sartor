@@ -1,4 +1,5 @@
 import { judgeCare } from "../../domain/care-rules.js";
+import { classifyGarmentSubKind } from "../../domain/subkind-classifier.js";
 import type { Garment, GarmentKind, Gender } from "../../domain/types.js";
 
 import type { AmazonProductDetail } from "./amazon-detail-parser.js";
@@ -11,16 +12,28 @@ export class AmazonProductDataError extends Error {
   }
 }
 
-/** CLI の Amazon 商品区分を Sartor の標準商品種別へ変換する。 */
+/** @implements SPEC-STEP1C §4 — CLI / preset の商品区分を Sartor の大分類へ変換する。 */
 export function kindForAmazonClass(classArgument: string): GarmentKind {
   switch (classArgument.trim().toLowerCase()) {
     case "shirts":
+    case "polo":
     case "knit":
+    case "cardigan":
+    case "vest":
+    case "cutsew":
     case "tshirt":
+    case "sweat":
+    case "hoodie":
       return "tops";
     case "pants":
       return "bottoms";
     case "jacket":
+    case "blouson":
+    case "denim-jacket":
+    case "coat":
+    case "down":
+    case "mountain-parka":
+    case "gilet":
     case "outer":
       return "outer";
     case "shoes":
@@ -45,6 +58,7 @@ export function mapAmazonGarment(
   const washingInformation = detail.careText ?? null;
   const colors = [...detail.colors];
   const care = judgeCare(composition, washingInformation, colors.join(" "));
+  const kind = kindForAmazonClass(classArgument);
   return {
     id: `amazon:${searchResult.asin}`,
     brand: detail.brand ?? "Amazon",
@@ -52,7 +66,8 @@ export function mapAmazonGarment(
     priceGroup: "00",
     name: detail.title,
     gender,
-    kind: kindForAmazonClass(classArgument),
+    kind,
+    subKind: classifyGarmentSubKind(kind, detail.title),
     priceJpy,
     currency: "JPY",
     colors,

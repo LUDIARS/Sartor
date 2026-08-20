@@ -1,4 +1,5 @@
-import type { Garment, GarmentKind, Gender } from "../domain/types.js";
+import { garmentSubKindSchema } from "../domain/garment-subkind.js";
+import type { Garment, GarmentKind, GarmentSubKind, Gender } from "../domain/types.js";
 import type { SartorDatabase } from "./db.js";
 
 type SqlRow = Record<string, unknown>;
@@ -8,6 +9,8 @@ export interface GarmentSearch {
   readonly genders?: readonly Gender[];
   readonly kind?: GarmentKind;
   readonly kinds?: readonly GarmentKind[];
+  readonly subKind?: GarmentSubKind;
+  readonly subKinds?: readonly GarmentSubKind[];
   readonly maxPriceJpy?: number;
   readonly limit?: number;
 }
@@ -87,6 +90,7 @@ export function garmentFromRow(row: SqlRow): Garment {
     name: requiredString(row, "name"),
     gender,
     kind: kind as GarmentKind,
+    subKind: garmentSubKindSchema.parse(requiredString(row, "sub_kind")),
     priceJpy: requiredInteger(row, "price_jpy"),
     currency: requiredString(row, "currency"),
     colors: parseStringArray(row, "colors_json"),
@@ -109,14 +113,15 @@ export class GarmentRepository {
   public upsert(garment: Garment): void {
     this.database.prepare(`
       INSERT INTO garments (
-        id, brand, product_id, price_group, name, gender, kind, price_jpy, currency,
+        id, brand, product_id, price_group, name, gender, kind, sub_kind, price_jpy, currency,
         colors_json, sizes_json, composition, washing_info, dryer_ok, color_bleed_risk,
         care_reasons_json, image_url, product_url, raw_json, crawled_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(id) DO UPDATE SET
         name = excluded.name,
         gender = excluded.gender,
         kind = excluded.kind,
+        sub_kind = excluded.sub_kind,
         price_jpy = excluded.price_jpy,
         currency = excluded.currency,
         colors_json = excluded.colors_json,
@@ -138,6 +143,7 @@ export class GarmentRepository {
       garment.name,
       garment.gender,
       garment.kind,
+      garment.subKind,
       garment.priceJpy,
       garment.currency,
       JSON.stringify(garment.colors),
@@ -173,6 +179,14 @@ export class GarmentRepository {
       clauses.push(`kind IN (${search.kinds.map(() => "?").join(", ")})`);
       parameters.push(...search.kinds);
     }
+    if (search.subKind !== undefined) {
+      clauses.push("sub_kind = ?");
+      parameters.push(search.subKind);
+    }
+    if (search.subKinds !== undefined && search.subKinds.length > 0) {
+      clauses.push(`sub_kind IN (${search.subKinds.map(() => "?").join(", ")})`);
+      parameters.push(...search.subKinds);
+    }
     if (search.maxPriceJpy !== undefined) {
       clauses.push("price_jpy <= ?");
       parameters.push(search.maxPriceJpy);
@@ -184,6 +198,23 @@ export class GarmentRepository {
     }
     const rows = this.database.prepare(`SELECT * FROM garments ${where} ORDER BY price_jpy ASC, id ASC${limitClause}`).all(...parameters) as SqlRow[];
     return rows.map(garmentFromRow);
+  }
+
+  /** @implements SPEC-STEP1C §3 — 差分更新のため、詳細 API を叩く前に既存の取得時刻だけを引く。 */
+  public findCrawledAtByIds(ids: readonly string[]): Map<string, string> {
+    if (ids.length === 0) {
+      return new Map();
+    }
+    const placeholders = ids.map(() => "?").join(", ");
+    const rows = this.database
+      .prepare(`SELECT id, crawled_at FROM garments WHERE id IN (${placeholders})`)
+      .all(...ids) as SqlRow[];
+    return new Map(rows.map((row) => [requiredString(row, "id"), requiredString(row, "crawled_at")] as const));
+  }
+
+  /** @implements SPEC-STEP1C §2 — 既存行の細分類を商品名から埋め直す。 */
+  public updateSubKind(id: string, subKind: GarmentSubKind): void {
+    this.database.prepare("UPDATE garments SET sub_kind = ? WHERE id = ?").run(subKind, id);
   }
 
   public findByIds(ids: readonly string[]): Garment[] {

@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { garmentKindSchema } from "./garment-kind.js";
+import { garmentSubKindSchema } from "./garment-subkind.js";
 import { japaneseSizeSchema } from "./size.js";
 
 export const genderSchema = z.enum(["WOMEN", "MEN", "UNISEX"]);
@@ -31,17 +33,8 @@ export type Season = z.infer<typeof seasonSchema>;
 export const colorToneSchema = z.enum(["mono", "earth", "pastel", "vivid", "navy-based"]);
 export type ColorTone = z.infer<typeof colorToneSchema>;
 
-export const garmentKindSchema = z.enum([
-  "tops",
-  "bottoms",
-  "outer",
-  "onepiece",
-  "shoes",
-  "accessory",
-  "inner",
-  "other",
-]);
-export type GarmentKind = z.infer<typeof garmentKindSchema>;
+export { garmentKindSchema, type GarmentKind } from "./garment-kind.js";
+export { garmentSubKindSchema, type GarmentSubKind } from "./garment-subkind.js";
 
 export const colorBleedRiskSchema = z.enum(["low", "mid", "high"]);
 export type ColorBleedRisk = z.infer<typeof colorBleedRiskSchema>;
@@ -61,6 +54,7 @@ export const garmentSchema = z.object({
   name: z.string().min(1),
   gender: genderSchema,
   kind: garmentKindSchema,
+  subKind: garmentSubKindSchema,
   priceJpy: z.number().int().nonnegative(),
   currency: z.string().min(1),
   colors: z.array(z.string()),

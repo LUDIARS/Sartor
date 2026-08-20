@@ -40,33 +40,37 @@ export function selectCandidateGarments(
     .filter((garment) => !profile.usesDryer || garment.dryerOk !== false)
     .filter((garment) => !profile.avoidColorBleed || garment.colorBleedRisk !== "high")
     .sort((left, right) => left.priceJpy - right.priceJpy || left.id.localeCompare(right.id));
-  return spreadAcrossKinds(eligible, [...requestedKinds]);
+  return spreadAcrossBuckets(eligible, [...requestedKinds]);
 }
 
 /**
- * 安い順の先頭だけを渡すと単一ブランド・最安帯に偏るので、種別ごとに枠を割り、
- * 各種別の価格順リストから等間隔に抜いて価格帯とブランドを散らす。
+ * @implements SPEC-STEP1C §5 — 安い順の先頭だけを渡すと単一ブランド・最安帯・単一の細分類に偏るので、
+ * 種別 × 細分類ごとに枠を割り、各枠の価格順リストから等間隔に抜いて価格帯とブランドを散らす。
  */
-function spreadAcrossKinds(sortedByPrice: readonly Garment[], kinds: readonly GarmentKind[]): Garment[] {
-  const itemsByKind = kinds
-    .map((kind) => sortedByPrice.filter((garment) => garment.kind === kind))
-    .filter((items) => items.length > 0);
-  if (itemsByKind.length === 0) {
+function spreadAcrossBuckets(sortedByPrice: readonly Garment[], kinds: readonly GarmentKind[]): Garment[] {
+  const buckets = kinds.flatMap((kind) => {
+    const ofKind = sortedByPrice.filter((garment) => garment.kind === kind);
+    const subKinds = [...new Set(ofKind.map((garment) => garment.subKind))];
+    return subKinds
+      .map((subKind) => ofKind.filter((garment) => garment.subKind === subKind))
+      .filter((items) => items.length > 0);
+  });
+  if (buckets.length === 0) {
     return [];
   }
-  const counts = allocateEvenly(itemsByKind, MAXIMUM_CANDIDATES);
-  return itemsByKind
+  const counts = allocateEvenly(buckets, MAXIMUM_CANDIDATES);
+  return buckets
     .flatMap((items, index) => pickEvenly(items, counts[index] ?? 0))
     .sort((left, right) => left.priceJpy - right.priceJpy || left.id.localeCompare(right.id));
 }
 
-function allocateEvenly(itemsByKind: readonly (readonly Garment[])[], maximum: number): number[] {
-  const counts = itemsByKind.map(() => 0);
+function allocateEvenly(buckets: readonly (readonly Garment[])[], maximum: number): number[] {
+  const counts = buckets.map(() => 0);
   for (let allocated = 0; allocated < maximum;) {
     let added = false;
-    for (let index = 0; index < itemsByKind.length && allocated < maximum; index += 1) {
+    for (let index = 0; index < buckets.length && allocated < maximum; index += 1) {
       const count = counts[index];
-      const items = itemsByKind[index];
+      const items = buckets[index];
       if (count !== undefined && items !== undefined && count < items.length) {
         counts[index] = count + 1;
         allocated += 1;

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import type { Garment, GarmentKind, Profile } from "../src/domain/types.js";
+import type { Garment, GarmentKind, GarmentSubKind, Profile } from "../src/domain/types.js";
 import { selectCandidateGarments } from "../src/llm/candidate-selector.js";
 
 const profile: Profile = {
@@ -23,7 +23,7 @@ const profile: Profile = {
   updatedAt: "2026-08-20T00:00:00.000Z",
 };
 
-function garment(id: string, kind: GarmentKind, sizes: readonly string[]): Garment {
+function garment(id: string, kind: GarmentKind, sizes: readonly string[], subKind: GarmentSubKind = "other"): Garment {
   return {
     id,
     brand: "test",
@@ -32,6 +32,7 @@ function garment(id: string, kind: GarmentKind, sizes: readonly string[]): Garme
     name: id,
     gender: "WOMEN",
     kind,
+    subKind,
     priceJpy: 1_000,
     currency: "JPY",
     colors: [],
@@ -91,4 +92,18 @@ test("selectCandidateGarments does not duplicate candidates for repeated request
   const selected = selectCandidateGarments(garments, profile, ["tops", "tops"], 10_000);
 
   assert.deepEqual(selected.map(({ id }) => id), ["tops-1", "tops-2"]);
+});
+
+test("selectCandidateGarments keeps rare sub kinds in the candidate set", () => {
+  const garments = [
+    ...Array.from({ length: 100 }, (_, index) => garment(`tshirt-${index}`, "tops", ["M"], "tshirt")),
+    garment("shirt-1", "tops", ["M"], "shirt"),
+    garment("shirt-2", "tops", ["M"], "shirt"),
+  ];
+
+  const selected = selectCandidateGarments(garments, profile, ["tops"], 10_000);
+
+  assert.equal(selected.length, 60);
+  assert.equal(selected.filter(({ subKind }) => subKind === "shirt").length, 2);
+  assert.equal(selected.filter(({ subKind }) => subKind === "tshirt").length, 58);
 });

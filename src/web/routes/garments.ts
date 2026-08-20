@@ -1,13 +1,14 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { z } from "zod";
 
-import { garmentKindSchema, genderSchema } from "../../domain/types.js";
+import { garmentKindSchema, garmentSubKindSchema, genderSchema } from "../../domain/types.js";
 import { HttpError, parseRequest, writeJson } from "../http.js";
 import type { ApiContext } from "./context.js";
 
 const garmentQuerySchema = z.object({
   gender: genderSchema.optional(),
   kind: garmentKindSchema.optional(),
+  subKind: garmentSubKindSchema.optional(),
   maxPrice: z.coerce.number().int().positive().max(10_000_000).optional(),
   limit: z.coerce.number().int().min(1).max(200).default(60),
 });
@@ -19,12 +20,14 @@ export function handleGarmentsRoute(request: IncomingMessage, response: ServerRe
   const query = parseRequest(garmentQuerySchema, {
     gender: url.searchParams.get("gender") ?? undefined,
     kind: url.searchParams.get("kind") ?? undefined,
+    subKind: url.searchParams.get("subKind") ?? undefined,
     maxPrice: url.searchParams.get("maxPrice") ?? undefined,
     limit: url.searchParams.get("limit") ?? undefined,
   });
   const garments = context.garments.search({
     gender: query.gender,
     kind: query.kind,
+    subKind: query.subKind,
     maxPriceJpy: query.maxPrice,
     limit: query.limit,
   });

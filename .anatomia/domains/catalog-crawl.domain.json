@@ -8,15 +8,22 @@
       "pathPattern": "(^|/)src/crawl/amazon/.*\\.ts$"
     },
     {
-      "pathPattern": "(^|/)src/(crawl/.*|cli/crawl)\\.ts$"
+      "pathPattern": "(^|/)tests/amazon-.*\\.test\\.ts$"
     },
     {
-      "pathPattern": "(^|/)tests/amazon-.*\\.test\\.ts$"
+      "pathPattern": "(^|/)src/(crawl/.*|cli/(crawl|crawl-arguments|reclassify))\\.ts$"
+    },
+    {
+      "pathPattern": "(^|/)src/domain/(garment-kind|garment-subkind|subkind-classifier)\\.ts$"
+    },
+    {
+      "pathPattern": "(^|/)tests/(catalog-class-resolver|subkind-classifier)\\.test\\.ts$"
     }
   ],
   "source": "spec-draft",
   "specRefs": [
     "spec/SPEC-STEP1-PROTOTYPE.md",
-    "spec/SPEC-STEP1B-CLAUDE-CLI-AMAZON.md"
+    "spec/SPEC-STEP1B-CLAUDE-CLI-AMAZON.md",
+    "spec/SPEC-STEP1C-CRAWLER-DEPTH-SUBKIND.md"
   ]
 }

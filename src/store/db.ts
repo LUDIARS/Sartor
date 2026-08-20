@@ -14,6 +14,7 @@ const migrationSql = `
     name TEXT NOT NULL,
     gender TEXT NOT NULL,
     kind TEXT NOT NULL,
+    sub_kind TEXT NOT NULL DEFAULT 'other',
     price_jpy INTEGER NOT NULL,
     currency TEXT NOT NULL,
     colors_json TEXT NOT NULL,
@@ -88,8 +89,28 @@ const migrationSql = `
     FOREIGN KEY (proposal_id, option_index) REFERENCES proposal_options(proposal_id, option_index)
   );
 
+  CREATE TABLE IF NOT EXISTS amazon_crawl_progress (
+    query TEXT PRIMARY KEY,
+    next_page INTEGER NOT NULL,
+    upserted INTEGER NOT NULL,
+    completed INTEGER NOT NULL,
+    processed_asins_json TEXT NOT NULL DEFAULT '[]',
+    updated_at TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS crawl_cooldowns (
+    scope TEXT PRIMARY KEY,
+    blocked_until TEXT NOT NULL,
+    reason TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+
   CREATE INDEX IF NOT EXISTS garments_search_idx ON garments (gender, kind, price_jpy);
   CREATE INDEX IF NOT EXISTS proposals_profile_idx ON proposals (profile_id, created_at DESC);
+`;
+
+const postColumnMigrationSql = `
+  CREATE INDEX IF NOT EXISTS garments_sub_kind_idx ON garments (kind, sub_kind, price_jpy);
 `;
 
 function resolveDatabasePath(): string {
@@ -102,6 +123,10 @@ function resolveDatabasePath(): string {
 /** @implements SPEC-STEP1-PROTOTYPE §11 — CREATE TABLE IF NOT EXISTS で増えない列を既存 DB へ冪等に追加する。 */
 const columnAdditions: readonly { table: string; column: string; definition: string }[] = [
   { table: "profiles", column: "weight_kg", definition: "INTEGER" },
+  /** @implements SPEC-STEP1C §2 — 既存 DB には 'other' 埋めで足し、reclassify CLI で商品名から補正する。 */
+  { table: "garments", column: "sub_kind", definition: "TEXT NOT NULL DEFAULT 'other'" },
+  /** @implements SPEC-STEP1C §4 — PR 開発中に作成済みの進捗 DB も処理済み ASIN を保持できるようにする。 */
+  { table: "amazon_crawl_progress", column: "processed_asins_json", definition: "TEXT NOT NULL DEFAULT '[]'" },
 ];
 
 function applyColumnAdditions(database: SartorDatabase): void {
@@ -118,6 +143,7 @@ export function openDatabase(databasePath = resolveDatabasePath()): SartorDataba
   try {
     database.exec(migrationSql);
     applyColumnAdditions(database);
+    database.exec(postColumnMigrationSql);
     return database;
   } catch (error) {
     database.close();

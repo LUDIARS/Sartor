@@ -9,6 +9,7 @@
     "test": "tsx --test tests/*.test.ts",
     "typecheck": "tsc --noEmit",
     "crawl": "tsx src/cli/crawl.ts",
+    "reclassify": "tsx src/cli/reclassify.ts",
     "serve": "tsx src/cli/serve.ts"
   },
   "dependencies": {
