@@ -6,6 +6,7 @@ import {
   proposalRequestSchema,
   type OutfitOption,
 } from "../../domain/types.js";
+import { seasonForDate } from "../../domain/season-fit.js";
 import { selectCandidateGarments } from "../../llm/candidate-selector.js";
 import { OutfitProposer, outfitProposalModel } from "../../llm/outfit-proposer.js";
 import { HttpError, parseRequest, readJsonBody, writeJson } from "../http.js";
@@ -58,6 +59,8 @@ async function handleCollection(request: IncomingMessage, response: ServerRespon
   if (profile.topSize === null || profile.bottomSize === null) {
     throw new HttpError(409, "profile_size_update_required", "Re-save the profile with supported Japanese sizes before requesting a proposal.");
   }
+  const season = input.vector.season ?? seasonForDate(new Date());
+  const vector = { ...input.vector, season };
   const candidateGenders = profile.gender === "UNISEX" ? undefined : [profile.gender, "UNISEX"] as const;
   const candidates = selectCandidateGarments(
     context.garments.search({
@@ -66,8 +69,11 @@ async function handleCollection(request: IncomingMessage, response: ServerRespon
       maxPriceJpy: input.budgetJpy,
     }),
     profile,
-    input.kinds,
-    input.budgetJpy,
+    {
+      kinds: input.kinds,
+      budgetJpy: input.budgetJpy,
+      season,
+    },
   );
   if (candidates.length === 0) {
     throw new HttpError(422, "no_candidates", "No catalog items meet the selected profile and budget constraints.");
@@ -75,9 +81,10 @@ async function handleCollection(request: IncomingMessage, response: ServerRespon
 
   const generated = await new OutfitProposer().propose({
     profile,
-    vector: input.vector,
+    vector,
     budgetJpy: input.budgetJpy,
     kinds: input.kinds,
+    season,
     candidates,
   });
   const candidatesById = new Map(candidates.map((candidate) => [candidate.id, candidate]));
@@ -107,7 +114,7 @@ async function handleCollection(request: IncomingMessage, response: ServerRespon
   });
   const proposalId = context.proposals.create({
     profileId: profile.id,
-    vector: input.vector,
+    vector,
     budgetJpy: input.budgetJpy,
     kinds: input.kinds,
     model: outfitProposalModel,

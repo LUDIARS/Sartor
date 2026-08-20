@@ -357,7 +357,7 @@ async function initialize() {
     decorateTpoOptions();
     fillSelect(vectorSeason, ["", ...vectors.seasons], "");
     fillSelect(vectorColorTone, ["", ...vectors.colorTones], "");
-    vectorSeason.options[0].textContent = "指定しない";
+    vectorSeason.options[0].textContent = "指定しない（今日の日付から判定）";
     vectorColorTone.options[0].textContent = "指定しない";
     renderVectorDefaults();
     if (profile) {

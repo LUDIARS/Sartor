@@ -11,6 +11,7 @@
   "source": "spec-draft",
   "specRefs": [
     "spec/SPEC-STEP1-PROTOTYPE.md",
-    "spec/SPEC-STEP1C-CRAWLER-DEPTH-SUBKIND.md"
+    "spec/SPEC-STEP1C-CRAWLER-DEPTH-SUBKIND.md",
+    "spec/SPEC-STEP1D-SEASON-AWARE-CANDIDATES.md"
   ]
 }

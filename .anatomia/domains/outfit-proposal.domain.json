@@ -12,12 +12,19 @@
     },
     {
       "pathPattern": "(^|/)tests/(claude-cli-runner|size|candidate-selector|prompt)\\.test\\.ts$"
+    },
+    {
+      "pathPattern": "(^|/)src/domain/season-fit\\.ts$"
+    },
+    {
+      "pathPattern": "(^|/)tests/season-fit\\.test\\.ts$"
     }
   ],
   "source": "spec-draft",
   "specRefs": [
     "spec/SPEC-STEP1-PROTOTYPE.md",
     "spec/SPEC-STEP1B-CLAUDE-CLI-AMAZON.md",
-    "spec/SPEC-STEP1C-CRAWLER-DEPTH-SUBKIND.md"
+    "spec/SPEC-STEP1C-CRAWLER-DEPTH-SUBKIND.md",
+    "spec/SPEC-STEP1D-SEASON-AWARE-CANDIDATES.md"
   ]
 }

@@ -1,4 +1,4 @@
-import type { FashionVector, Garment, GarmentKind, Profile } from "../domain/types.js";
+import type { FashionVector, Garment, GarmentKind, Profile, Season } from "../domain/types.js";
 
 import {
   createClaudeCliRunner,
@@ -16,6 +16,7 @@ export interface OutfitProposalInput {
   readonly vector: FashionVector;
   readonly budgetJpy: number;
   readonly kinds: readonly GarmentKind[];
+  readonly season: Season;
   readonly candidates: readonly Garment[];
 }
 
@@ -72,6 +73,7 @@ export class OutfitProposer {
       input.vector,
       input.budgetJpy,
       input.kinds,
+      input.season,
       input.candidates,
       correction,
     );

@@ -29,10 +29,12 @@ const vector: FashionVector = {
 };
 
 test("buildOutfitUserPrompt sends derived fit bands instead of exact measurements or free-form notes", () => {
-  const request = JSON.parse(buildOutfitUserPrompt(profile, vector, 20_000, ["tops"], [])) as {
+  const request = JSON.parse(buildOutfitUserPrompt(profile, vector, 20_000, ["tops"], "autumn", [])) as {
     profile: Record<string, unknown>;
+    season: string;
   };
 
+  assert.equal(request.season, "autumn");
   assert.equal(request.profile.heightBand, "175 cm or taller");
   assert.equal(request.profile.build, "fuller");
   assert.equal("heightCm" in request.profile, false);

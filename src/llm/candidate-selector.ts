@@ -1,5 +1,6 @@
+import { isSubKindInSeason } from "../domain/season-fit.js";
 import { garmentOffersSize } from "../domain/size.js";
-import type { Garment, GarmentKind, Profile } from "../domain/types.js";
+import type { Garment, GarmentKind, Profile, Season } from "../domain/types.js";
 
 const MAXIMUM_CANDIDATES = 60;
 const TOP_SIZE_KINDS: ReadonlySet<GarmentKind> = new Set(["tops", "outer", "onepiece", "inner"]);
@@ -24,12 +25,18 @@ function garmentFitsProfileSize(garment: Garment, profile: Profile): boolean {
   return true;
 }
 
+export interface CandidateFilter {
+  readonly kinds: readonly GarmentKind[];
+  readonly budgetJpy: number;
+  readonly season: Season;
+}
+
 export function selectCandidateGarments(
   garments: readonly Garment[],
   profile: Profile,
-  kinds: readonly GarmentKind[],
-  budgetJpy: number,
+  filter: CandidateFilter,
 ): Garment[] {
+  const { kinds, budgetJpy, season } = filter;
   const requestedKinds = new Set(kinds);
   const eligible = garments
     .filter((garment) => garmentMatchesGender(garment, profile))
@@ -39,6 +46,8 @@ export function selectCandidateGarments(
     .filter((garment) => !garmentUsesNgMaterial(garment, profile))
     .filter((garment) => !profile.usesDryer || garment.dryerOk !== false)
     .filter((garment) => !profile.avoidColorBleed || garment.colorBleedRisk !== "high")
+    // @implements SPEC-STEP1D §1 — 季節外の細分類 (夏のダウン等) は候補にしない。
+    .filter((garment) => isSubKindInSeason(season, garment.subKind))
     .sort((left, right) => left.priceJpy - right.priceJpy || left.id.localeCompare(right.id));
   return spreadAcrossBuckets(eligible, [...requestedKinds]);
 }

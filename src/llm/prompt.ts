@@ -1,4 +1,4 @@
-import type { FashionVector, Garment, GarmentKind, Profile } from "../domain/types.js";
+import type { FashionVector, Garment, GarmentKind, Profile, Season } from "../domain/types.js";
 
 /** @implements SPEC-STEP1-PROTOTYPE §11 — 正確な身長を LLM へ渡さず、丈感の判断に必要な帯だけにする。 */
 function describeHeight(heightCm: number | null): string | undefined {
@@ -54,6 +54,7 @@ export function buildOutfitSystemPrompt(): string {
     "You are Sartor's clothing coordinator.",
     "Return exactly three distinct outfit options using only the supplied garment IDs.",
     "Respect the requested age band, TPO, style-axis weights, selected item kinds, and JPY budget.",
+    "season is the season being dressed for. Candidates are already filtered to that season; keep every option seasonally coherent and never suggest out-of-season layering.",
     "subKind is the finer garment type (shirt, knit, tailored-jacket, ...). Vary it across the three options instead of repeating the same type.",
     "Use heightBand, build, topSize and bottomSize to choose suitable silhouettes and mention the fit reasoning briefly.",
     "Candidates with recognized size labels are pre-filtered. An empty or unrecognized size list means availability is unknown; do not claim an exact fit in that case.",
@@ -73,6 +74,7 @@ export function buildOutfitUserPrompt(
   vector: FashionVector,
   budgetJpy: number,
   kinds: readonly GarmentKind[],
+  season: Season,
   candidates: readonly Garment[],
   correction?: string,
 ): string {
@@ -81,6 +83,7 @@ export function buildOutfitUserPrompt(
     vector,
     budgetJpy,
     requestedKinds: kinds,
+    season,
     candidates: candidates.map(summarizeGarment),
     correction,
   };

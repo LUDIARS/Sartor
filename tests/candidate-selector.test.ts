@@ -60,12 +60,11 @@ test("selectCandidateGarments applies top and bottom profile sizes to every size
     garment("shoes-unknown", "shoes", ["24.5"]),
   ];
 
-  const selected = selectCandidateGarments(
-    garments,
-    profile,
-    ["tops", "outer", "onepiece", "inner", "bottoms", "shoes"],
-    10_000,
-  );
+  const selected = selectCandidateGarments(garments, profile, {
+    kinds: ["tops", "outer", "onepiece", "inner", "bottoms", "shoes"],
+    budgetJpy: 10_000,
+    season: "autumn",
+  });
 
   assert.deepEqual(selected.map(({ id }) => id), ["bottoms-match", "onepiece-match", "shoes-unknown", "tops-match"]);
 });
@@ -76,7 +75,7 @@ test("selectCandidateGarments fills the candidate limit while keeping kinds bala
     ...Array.from({ length: 100 }, (_, index) => garment(`bottoms-${index}`, "bottoms", ["L"])),
   ];
 
-  const selected = selectCandidateGarments(garments, profile, ["tops", "bottoms"], 10_000);
+  const selected = selectCandidateGarments(garments, profile, { kinds: ["tops", "bottoms"], budgetJpy: 10_000, season: "autumn" });
 
   assert.equal(selected.length, 60);
   assert.equal(selected.filter(({ kind }) => kind === "tops").length, 1);
@@ -89,7 +88,7 @@ test("selectCandidateGarments does not duplicate candidates for repeated request
     garment("tops-2", "tops", ["M"]),
   ];
 
-  const selected = selectCandidateGarments(garments, profile, ["tops", "tops"], 10_000);
+  const selected = selectCandidateGarments(garments, profile, { kinds: ["tops", "tops"], budgetJpy: 10_000, season: "autumn" });
 
   assert.deepEqual(selected.map(({ id }) => id), ["tops-1", "tops-2"]);
 });
@@ -101,9 +100,24 @@ test("selectCandidateGarments keeps rare sub kinds in the candidate set", () => 
     garment("shirt-2", "tops", ["M"], "shirt"),
   ];
 
-  const selected = selectCandidateGarments(garments, profile, ["tops"], 10_000);
+  const selected = selectCandidateGarments(garments, profile, { kinds: ["tops"], budgetJpy: 10_000, season: "autumn" });
 
   assert.equal(selected.length, 60);
   assert.equal(selected.filter(({ subKind }) => subKind === "shirt").length, 2);
   assert.equal(selected.filter(({ subKind }) => subKind === "tshirt").length, 58);
+});
+
+test("selectCandidateGarments drops out-of-season sub kinds", () => {
+  const garments = [
+    garment("summer-tee", "tops", ["M"], "tshirt"),
+    garment("winter-knit", "tops", ["M"], "knit"),
+    garment("down-jacket", "outer", ["M"], "down"),
+    garment("tailored", "outer", ["M"], "tailored-jacket"),
+  ];
+
+  const summer = selectCandidateGarments(garments, profile, { kinds: ["tops", "outer"], budgetJpy: 10_000, season: "summer" });
+  assert.deepEqual(summer.map(({ id }) => id), ["summer-tee", "tailored"]);
+
+  const winter = selectCandidateGarments(garments, profile, { kinds: ["tops", "outer"], budgetJpy: 10_000, season: "winter" });
+  assert.deepEqual(winter.map(({ id }) => id), ["down-jacket", "tailored", "winter-knit"]);
 });
